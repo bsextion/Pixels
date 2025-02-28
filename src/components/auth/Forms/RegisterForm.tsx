@@ -5,22 +5,34 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { RegisterValidation } from "@/lib/validation";
 import { z } from "zod";
 import Loader from "@/components/common/Loader";
-import { Link } from "react-router-dom";
-import { createUserAccount } from "@/lib/appwrite/api";
+import { Link, useNavigate } from "react-router-dom";
+import { createUserAccount, loginAccount } from "@/lib/appwrite/api";
+import {
+  useCreateUserAccount,
+  useLoginAccount,
+} from "@/lib/react-query/queriesAndMutations";
+import { useUserContext } from "@/context/AuthContext";
 
 const RegisterForm = () => {
-  const isLoading = false;
+  const navigate = useNavigate()
+  const {checkAuthUser, isLoading: isUserLoading} = useUserContext(); 
 
+  const { mutateAsync: createUserAccount, isLoading: isCreatingAccount } =
+    useCreateUserAccount();
+
+  const { mutateAsync: loginAccount, isLoading: isLoggingIn } =
+    useLoginAccount();
+  
   // Define form.
   const form = useForm<z.infer<typeof RegisterValidation>>({
     resolver: zodResolver(RegisterValidation),
@@ -34,25 +46,44 @@ const RegisterForm = () => {
 
   const onSubmit = async (values: z.infer<typeof RegisterValidation>) => {
     const newUser = await createUserAccount(values);
-    console.log('new user created: ', newUser);
+    if (!newUser) {
+      return toast.warning("Registration failed: Error creating user");
+    }
 
-  }
+    const session = await loginAccount({
+      email: values.email,
+      password: values.password,
+    });
+
+    if (!session) {
+      return toast.warning("Log in failed. Please try again");
+    }
+
+    const isLoggedIn = await checkAuthUser();
+
+    if (isLoggedIn) {
+      form.reset();
+      navigate('/');
+    }
+    else {
+      console.log('Sign in failed! Please try again.')
+    }
+  };
 
   return (
     <Form {...form}>
       <div className="sm:w-420 flex-center flex-col">
-        <img src="/assets/images/logo.svg" alt="logo" />
-
         <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
           Create a new account
         </h2>
         <p className="text-light-3 small-medium md:base-regular mt-2">
-          To use snapgram, Please enter your details
+          To register, please enter your details.
         </p>
 
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="flex flex-col gap-5 w-full mt-4">
+          className="flex flex-col gap-5 w-full mt-4"
+        >
           <FormField
             control={form.control}
             name="name"
@@ -110,7 +141,7 @@ const RegisterForm = () => {
           />
 
           <Button type="submit" className="shad-button_primary">
-            {isLoading ? (
+            {isCreatingAccount ? (
               <div className="flex-center gap-2">
                 <Loader /> Loading...
               </div>
@@ -122,8 +153,9 @@ const RegisterForm = () => {
           <p className="text-small-regular text-light-2 text-center mt-2">
             Already have an account?
             <Link
-              to="/sign-in"
-              className="text-primary-500 text-small-semibold ml-1">
+              to="/login"
+              className="text-primary-500 text-small-semibold ml-1"
+            >
               Log in
             </Link>
           </p>
@@ -132,6 +164,5 @@ const RegisterForm = () => {
     </Form>
   );
 };
-
 
 export default RegisterForm;
