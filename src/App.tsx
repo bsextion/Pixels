@@ -3,8 +3,9 @@ import "./globals.css";
 import { Routes, Route } from "react-router-dom";
 import LoginForm from "./components/auth/Forms/LoginForm";
 import RegisterForm from "./components/auth/Forms/RegisterForm";
-import { Home, Layout } from "./components/pages";
+import { AllUsers, CreatePost, EditPost, EditProfile, Explore, Home, Layout, PostDetails, Profile, Saved } from "./components/pages";
 import AuthModal from "./components/auth/AuthModal";
+
 
 const App = () => {
   return (
@@ -18,6 +19,14 @@ const App = () => {
         {/* private routes*/}
         <Route element={<Layout />}>
         <Route index element={<Home />} />
+        <Route path="/explore" element={<Explore/>} />
+        <Route path="/saved" element={<Saved/>} />
+        <Route path="/all-users" element={<AllUsers/>} />
+        <Route path="/create-post" element={<CreatePost/>} />
+        <Route path="/edit-post/:id" element={<EditPost/>} />
+        <Route path="/posts/:id" element={<PostDetails/>} />
+        <Route path="/profile/:id/*" element={<Profile/>} />
+        <Route path="/edit-profile" element={<EditProfile/>} />
         </Route>
       </Routes>
     </main>
