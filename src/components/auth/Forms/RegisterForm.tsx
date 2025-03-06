@@ -10,13 +10,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner";
+import { Toaster, toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { RegisterValidation } from "@/lib/validation";
 import { z } from "zod";
 import Loader from "@/components/common/Loader";
 import { Link, useNavigate } from "react-router-dom";
-import { createUserAccount, loginAccount } from "@/lib/appwrite/api";
 import {
   useCreateUserAccount,
   useLoginAccount,
@@ -24,15 +23,15 @@ import {
 import { useUserContext } from "@/context/AuthContext";
 
 const RegisterForm = () => {
-  const navigate = useNavigate()
-  const {checkAuthUser, isLoading: isUserLoading} = useUserContext(); 
+  const navigate = useNavigate();
+  const { checkAuthUser, isLoading: isUserLoading } = useUserContext();
 
   const { mutateAsync: createUserAccount, isLoading: isCreatingAccount } =
     useCreateUserAccount();
 
   const { mutateAsync: loginAccount, isLoading: isLoggingIn } =
     useLoginAccount();
-  
+
   // Define form.
   const form = useForm<z.infer<typeof RegisterValidation>>({
     resolver: zodResolver(RegisterValidation),
@@ -47,7 +46,9 @@ const RegisterForm = () => {
   const onSubmit = async (values: z.infer<typeof RegisterValidation>) => {
     const newUser = await createUserAccount(values);
     if (!newUser) {
-      return toast.warning("Registration failed: Error creating user");
+      return toast.warning(
+        "Registration failed: Error creating user. Please try again."
+      );
     }
 
     const session = await loginAccount({
@@ -56,22 +57,22 @@ const RegisterForm = () => {
     });
 
     if (!session) {
-      return toast.warning("Log in failed. Please try again");
+      toast("Something went wrong. Please login your new account");
     }
 
     const isLoggedIn = await checkAuthUser();
 
     if (isLoggedIn) {
       form.reset();
-      navigate('/');
-    }
-    else {
-      console.log('Sign in failed! Please try again.')
+      navigate("/");
+    } else {
+      toast("Log in failed. Please try again.");
     }
   };
 
   return (
     <Form {...form}>
+      <Toaster />
       <div className="sm:w-420 flex-center flex-col">
         <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">
           Create a new account
@@ -143,7 +144,7 @@ const RegisterForm = () => {
           <Button type="submit" className="shad-button_primary">
             {isCreatingAccount ? (
               <div className="flex-center gap-2">
-                <Loader /> Loading...
+                <Loader/> {" "} Loading...
               </div>
             ) : (
               "Sign Up"

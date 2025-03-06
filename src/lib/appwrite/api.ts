@@ -22,7 +22,7 @@ export const createUserAccount = async (user: INewUser) => {
       accountId: newAccount.$id,
       name: newAccount.name,
       email: newAccount.email,
-      userName: user.username,
+      username: user.username,
       imageUrl: avatarUrl,
     });
     return newAccount;
@@ -37,7 +37,7 @@ export const saveUserDb = async (user: {
   email: string;
   name: string;
   imageUrl: URL;
-  userName?: string;
+  username?: string;
 }) => {
   try {
     const newUser = await databases.createDocument(
@@ -46,6 +46,7 @@ export const saveUserDb = async (user: {
       ID.unique(),
       user
     );
+    return newUser;
   } catch (error) {
     console.log(error);
   }
@@ -60,6 +61,17 @@ export const loginAccount = async (user: {email: string, password: string}) => {
     console.log(error)
   }
   
+}
+
+export const logoutAccount = async () => {
+  try {
+    const session = await account.deleteSession("current");
+    return session
+    
+  } catch (error) {
+    console.log(error)
+    
+  }
 }
 
 //Get User
@@ -80,5 +92,6 @@ export const getCurrentUser = async () => {
  
   } catch (error) {
     console.log(error)
+    return null;
   }
 }

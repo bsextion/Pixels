@@ -10,7 +10,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { toast } from "sonner"
 import { Input } from "@/components/ui/input";
 import { LoginValidation } from "@/lib/validation";
 import { z } from "zod";
@@ -19,6 +18,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginAccount } from "@/lib/appwrite/api";
 import { useLoginAccount } from "@/lib/react-query/queriesAndMutations";
 import { useUserContext } from "@/context/AuthContext";
+import { Toaster, toast } from "sonner";
 
 const LoginForm = () => {
   const navigate = useNavigate();
@@ -47,20 +47,19 @@ const LoginForm = () => {
 
     const isLoggedIn = await checkAuthUser();
 
-
     if (isLoggedIn) {
       form.reset();
-      toast("Successfully logged in!")
-      console.log('Navigating')
+      toast("Successfully logged in!");
       navigate("/");
     } else {
-      toast("Log in failed. Please try again.")
-      console.log("Log in failed. Please try again");
+      toast("Log in failed. Please try again.");
     }
   };
 
   return (
     <Form {...form}>
+      <Toaster />
+
       <div className="sm:w-420 flex-center flex-col">
         <h2 className="h3-bold md:h2-bold pt-5 sm:pt-12">Log In</h2>
         <p className="text-light-3 small-medium md:base-regular mt-2">
@@ -109,15 +108,15 @@ const LoginForm = () => {
             )}
           </Button>
 
-                    <p className="text-small-regular text-light-2 text-center mt-2">
-                      Don't have an account?
-                      <Link
-                        to="/register"
-                        className="text-primary-500 text-small-semibold ml-1"
-                      >
-                        Register
-                      </Link>
-                    </p>
+          <p className="text-small-regular text-light-2 text-center mt-2">
+            Don't have an account?
+            <Link
+              to="/register"
+              className="text-primary-500 text-small-semibold ml-1"
+            >
+              Register
+            </Link>
+          </p>
         </form>
       </div>
     </Form>
