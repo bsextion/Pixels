@@ -180,3 +180,16 @@ export const getFilePreview = async (fileId: string) => {
     console.log(error);
   }
 };
+
+export const getRecentPosts = async () => {
+  const posts = await databases.listDocuments(
+    appwriteConfig.databaseId,
+    appwriteConfig.postsCollectionId,
+    [Query.orderDesc("$createdAt"), Query.limit(20)]
+  );
+
+  if (!posts) throw Error;
+
+  return posts;
+
+};
