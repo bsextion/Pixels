@@ -41,7 +41,7 @@ const LeftSidebar = () => {
                 className={`left-sidebar-link group ${isActive && "bg-primary-500"}`}
                 key={link.label}
               >
-                <NavLink
+                <Link
                   to={link.route}
                   className="flex gap-4 items-center p-2"
                 >
@@ -51,7 +51,7 @@ const LeftSidebar = () => {
                     className={`group-hover:invert-white ${isActive && "invert-white"}`}
                   />
                   {link.label}
-                </NavLink>
+                </Link>
               </li>
             );
           })}
