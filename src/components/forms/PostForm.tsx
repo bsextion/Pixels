@@ -15,29 +15,48 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "../ui/textarea";
 import FileUpload from "../common/FileUpload";
+import { PostValidation } from "@/lib/validation";
+import { Models } from "appwrite";
+import { useUserContext } from "@/context/AuthContext";
+import { Toaster, toast } from "sonner";
+import { useNavigate } from "react-router-dom";
+import { useCreatePost } from "@/lib/react-query/queriesAndMutations";
 
-const PostForm = () => {
-  const formSchema = z.object({
-    username: z.string().min(2, {
-      message: "Username must be at least 2 characters.",
-    }),
-  });
+type PostFormProps = {
+  post?: Models.Document;
+};
+const PostForm = ({ post }: PostFormProps) => {
+  const navigate = useNavigate();
+  const { mutateAsync: createPost, isLoading: isLoadingCreate } = useCreatePost();
 
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
+  const { user } = useUserContext();
+
+  const form = useForm<z.infer<typeof PostValidation>>({
+    resolver: zodResolver(PostValidation),
     defaultValues: {
-      username: "",
+      caption: post ? post?.caption : "",
+      file: [],
+      location: post ? post?.location : "",
+      tags: post ? post?.tags.join(",") : "",
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    // Do something with the form values.
-    // ✅ This will be type-safe and validated.
-    console.log(values);
+  const onSubmit = async (values: z.infer<typeof PostValidation>) => {
+    const newPost = await createPost({
+      ...values,
+      userId: user.id,
+    });
+
+    if (!newPost) {
+      toast.warning("Please try again.");
+    }
+    navigate('/')
   }
 
   return (
     <Form {...form}>
+      <Toaster />
+
       <form
         onSubmit={form.handleSubmit(onSubmit)}
         className="flex flex-col gap-9 w-full max-w-5xl"
@@ -68,6 +87,8 @@ const PostForm = () => {
               <FormControl>
                 <FileUpload
                   className="shad-textarea custom-scrollbar"
+                  fieldChange={field.onChange}
+                  mediaUrl={post?.imageUrl}
                   {...field}
                 />
               </FormControl>
@@ -83,23 +104,21 @@ const PostForm = () => {
             <FormItem>
               <FormLabel className="shad-form_label">Add Location</FormLabel>
               <FormControl>
-                <Input
-                  type="text"
-                  className="shad-input"
-                  {...field}
-                />
+                <Input type="text" className="shad-input" {...field} />
               </FormControl>
               <FormDescription></FormDescription>
               <FormMessage className="shad-form_message" />
             </FormItem>
           )}
         />
-                <FormField
+        <FormField
           control={form.control}
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="shad-form_label">Add Tags (comma separated)</FormLabel>
+              <FormLabel className="shad-form_label">
+                Add Tags (comma separated)
+              </FormLabel>
               <FormControl>
                 <Input
                   type="text"
@@ -114,8 +133,15 @@ const PostForm = () => {
           )}
         />
         <div className="flex gap-5 items-center justify-end">
-        <Button type="button" className="shad-button_dark_4">Cancel</Button>
-        <Button type="submit" className="shad-button_primary whitespace-nowrap">Submit</Button>
+          <Button type="button" className="shad-button_dark_4">
+            Cancel
+          </Button>
+          <Button
+            type="submit"
+            className="shad-button_primary whitespace-nowrap"
+          >
+            Submit
+          </Button>
         </div>
       </form>
     </Form>

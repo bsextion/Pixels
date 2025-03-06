@@ -8,7 +8,7 @@ export const appwriteConfig = {
     storageId: import.meta.env.VITE_APPWRITE_STORAGE_ID, //for media
     savedCollectionId: import.meta.env.VITE_APPWRITE_SAVED_COLLECTION_ID, 
     usersCollectionId: import.meta.env.VITE_APPWRITE_USERS_ID_COLLECTION_ID,
-    postsollectionId: import.meta.env.VITE_APPWRITE_POSTS_ID_COLLECTION_ID,
+    postsCollectionId: import.meta.env.VITE_APPWRITE_POSTS_ID_COLLECTION_ID,
 }
 
 export const client = new Client();
