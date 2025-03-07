@@ -20,14 +20,21 @@ import { Models } from "appwrite";
 import { useUserContext } from "@/context/AuthContext";
 import { Toaster, toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useCreatePost } from "@/lib/react-query/queriesAndMutations";
+import {
+  useCreatePost,
+  useUpdatePost,
+} from "@/lib/react-query/queriesAndMutations";
 
 type PostFormProps = {
   post?: Models.Document;
+  action: "Create" | "Update";
 };
-const PostForm = ({ post }: PostFormProps) => {
+const PostForm = ({ post, action }: PostFormProps) => {
   const navigate = useNavigate();
-  const { mutateAsync: createPost, isLoading: isLoadingCreate } = useCreatePost();
+  const { mutateAsync: createPost, isLoading: isLoadingCreate } =
+    useCreatePost();
+  const { mutateAsync: updatePost, isLoading: isLoadingUpdate } =
+    useUpdatePost();
 
   const { user } = useUserContext();
 
@@ -42,6 +49,20 @@ const PostForm = ({ post }: PostFormProps) => {
   });
 
   const onSubmit = async (values: z.infer<typeof PostValidation>) => {
+    if (post && action === "Update") {
+      const updatedPost = await updatePost({
+        ...values,
+        postId: post.$id,
+        imageId: post.$id,
+        imageUrl: post.imageUrl,
+      });
+
+      if (!updatedPost) {
+        toast.warning("Please try again.");
+      }
+      navigate(`/posts/${post.$id}`);
+    }
+
     const newPost = await createPost({
       ...values,
       userId: user.id,
@@ -50,8 +71,8 @@ const PostForm = ({ post }: PostFormProps) => {
     if (!newPost) {
       toast.warning("Please try again.");
     }
-    navigate('/')
-  }
+    navigate("/");
+  };
 
   return (
     <Form {...form}>
@@ -86,7 +107,6 @@ const PostForm = ({ post }: PostFormProps) => {
               <FormLabel className="shad-form_label">Upload Photo</FormLabel>
               <FormControl>
                 <FileUpload
-                  className="shad-textarea custom-scrollbar"
                   fieldChange={field.onChange}
                   mediaUrl={post?.imageUrl}
                   {...field}
@@ -139,8 +159,10 @@ const PostForm = ({ post }: PostFormProps) => {
           <Button
             type="submit"
             className="shad-button_primary whitespace-nowrap"
+            disabled={isLoadingCreate || isLoadingUpdate}
           >
-            Submit
+            {isLoadingCreate || isLoadingUpdate && "Loading..." }
+            {action} Post
           </Button>
         </div>
       </form>

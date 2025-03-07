@@ -33,7 +33,6 @@ const PostStats = ({ post, userId }: PostStatsProps) => {
   );
 
   useEffect(() => {
-    console.log("savedPost", currentUser);
     if (savedPost) {
       setIsSaved(savedPost ? true : false);
     }
