@@ -185,7 +185,7 @@ export const useGetPosts = () => {
 
 export const useSearchPosts = (searchValue: string) => {
   return useQuery({
-    queryKey: [QUERY_KEYS.SEARCH_POSTS],
+    queryKey: [QUERY_KEYS.SEARCH_POSTS, searchValue],
     queryFn: () => searchPosts(searchValue),
     enabled: !!searchValue,  //refetches data when searchValue changes
   });

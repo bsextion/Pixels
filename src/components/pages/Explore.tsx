@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Input } from "../ui/input";
 import GridPostList from "../common/GridPostList";
 import SearchResults from "../common/SearchResults";
@@ -8,8 +8,11 @@ import {
 } from "@/lib/react-query/queriesAndMutations";
 import useDebounce from "../hooks/useDebounce";
 import Loader from "../common/Loader";
+import { useInView } from "react-intersection-observer";
 
 const Explore = () => {
+  const {ref, inView} = useInView()
+
   const {
     data: posts,
     fetchNextPage,
@@ -19,8 +22,15 @@ const Explore = () => {
 
   const [searchValue, setSearchValue] = useState("");
   const debouncedValue = useDebounce(searchValue, 600);
-  const { data: searchedPosts, isLoading: isSearching } =
+
+  const { data: searchedPosts, isFetching: isSearching } =
     useSearchPosts(debouncedValue);
+
+    useEffect(() => {
+      if (inView && !searchValue) {
+        fetchNextPage();
+      }
+    }, [inView, searchValue]); //only call when last element is in view and we have search value
 
   if (!posts) {
     return (
@@ -65,7 +75,7 @@ const Explore = () => {
       </div>
       <div className="flex flex-wrap gap-9 w-full max-w-5xl">
         {shouldShowSearchResults ? (
-          <SearchResults />
+          <SearchResults isSearchFetching={isSearching} searchedPosts={searchedPosts} />
         ) : shouldShowPosts ? (
           <p className="text-light-4 mt-10 text-center w-full">
             No more posts!
@@ -76,6 +86,12 @@ const Explore = () => {
           ))
         )}
       </div>
+      {hasNextPage && !searchValue && (
+        // ref means we're at the bootom of page
+        <div ref={ref} className="mt-10">
+          <Loader/>
+          </div>
+      )}
     </div>
   );
 };
