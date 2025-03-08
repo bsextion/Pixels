@@ -322,16 +322,60 @@ export async function updatePost(post: IUpdatePost) {
   }
 }
 
-export const deletePost = async(postId: string, imageId: string) => {
+export const deletePost = async (postId: string, imageId: string) => {
   if (!postId || !imageId) throw Error;
 
   try {
-    await databases.deleteDocument(appwriteConfig.databaseId, appwriteConfig.postsCollectionId, postId);
+    await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.postsCollectionId,
+      postId
+    );
 
-    return {status: 'ok'};
-    
+    return { status: "ok" };
+  } catch (error) {
+    console.log(error);
+  }
+};
+
+export const getInfinitePosts = async ({
+  pageParam,
+}: {
+  pageParam: number;
+}) => {
+  const queries: any[] = [Query.orderDesc("$updatedAt"), Query.limit(10)];
+
+  if (pageParam) {
+    queries.push(Query.cursorAfter(pageParam.toString())); //i.e if on page 2, it will get the next 10 posts
+  }
+
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.postsCollectionId,
+      queries
+    );
+
+    if (!posts) throw Error;
+
+    return posts;
   } catch (error) {
     console.log(error)
   }
+};
 
-}
+export const searchPosts = async (searchValue: string) => {
+  try {
+    const posts = await databases.listDocuments(
+      appwriteConfig.databaseId,
+      appwriteConfig.postsCollectionId,
+      [Query.search("caption", searchValue)]
+    );
+
+    if (!posts) throw Error;
+
+    return posts;
+  } catch (error) {
+    console.log(error)
+  }
+};
